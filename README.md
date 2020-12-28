@@ -3,6 +3,7 @@
 ## About
 
 Practice game to gain experience making game stuff.
+Unity Version: 2020.2.1f1
 
 <a name="top"></a>
 
