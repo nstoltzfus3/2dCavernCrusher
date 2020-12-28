@@ -10,6 +10,7 @@ public class movement : MonoBehaviour
     // hoziontal speed
     public float speed = 0f;
     public const float maxSpeed = 10f;
+    public bool isFacingRight = true;
 
     // vertical jump
     public float jumpForce = 10f;
@@ -52,7 +53,6 @@ public class movement : MonoBehaviour
 
     void Update()
     {
-
         // bool to see if overlap of floor layer and feet object
         isGrounded = Physics2D.OverlapCircle(feetPos.position, checkRadius, whatIsGround);
 
@@ -96,10 +96,12 @@ public class movement : MonoBehaviour
         if (moveInput > 0)
         {
             transform.eulerAngles = new Vector3(0, 0, 0);
+            isFacingRight = true;
         }
         else if (moveInput < 0)
         {
             transform.eulerAngles = new Vector3(0, 180, 0);
+            isFacingRight = false;
         }
     }
 
@@ -159,10 +161,23 @@ public class movement : MonoBehaviour
 
     void setSpeed(float newSpeed)
     {
-        
+        ContactPoint2D[] contacts = new ContactPoint2D[10];
+        int num = rb.GetContacts(contacts);
+        for (int i = 0; i < num; i++)
+        {
+            if (Math.Abs(contacts[i].normal.x) > 0 && 
+                (rb.position.y - 1.3 < contacts[i].point.y) &&
+                ((rb.position.x + 0.25 < contacts[i].point.x && 
+                 isFacingRight) ||
+                (rb.position.x - 0.25 > contacts[i].point.x && 
+                 !isFacingRight)))
+            {
+                speed = 0;
+                return;
+            }
+        }
         if (Math.Abs(newSpeed) < maxSpeed)
         {
-            Debug.Log("Newspeed: " + newSpeed);
             speed = newSpeed;
         }
         else
@@ -170,4 +185,16 @@ public class movement : MonoBehaviour
             speed = maxSpeed * ((newSpeed > 0) ? 1 : -1);
         }
     }
+    
+    // called when the cube hits the floor
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if (Math.Abs(col.GetContact(0).normal.x) > 0 && 
+            (rb.position.y - 1.3 < col.GetContact(0).point.y))
+        {
+            speed = 0;
+        }
+    }
+
+
 }
